@@ -2,7 +2,6 @@
 
 Kalash Fashion is a full-stack ecommerce application for browsing, ordering, and managing products with separate user and admin experiences. Built on the MERN stack (MongoDB, Express, React, Node) with Redux Toolkit and Material UI.
 
-![Homepage](frontend/src/assets/images/front.png)
 
 ## Features
 
