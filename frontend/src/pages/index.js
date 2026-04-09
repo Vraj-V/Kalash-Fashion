@@ -1,7 +1,9 @@
 import { AddProductPage } from "./AddProductPage";
 import { AdminOrdersPage } from "./AdminOrdersPage";
+import { AdminProfilePage } from "./AdminProfilePage";
 import { CartPage } from "./CartPage";
 import { CheckoutPage } from "./CheckoutPage";
+import { ContactPage } from "./ContactPage";
 import { ForgotPasswordPage } from "./ForgotPasswordPage";
 import { HomePage } from "./HomePage";
 import { LoginPage } from "./LoginPage";
@@ -14,6 +16,7 @@ import { SignupPage } from "./SignupPage";
 import { UserOrdersPage } from "./UserOrdersPage";
 import { UserProfilePage } from "./UserProfilePage";
 import { WishlistPage } from "./WishlistPage";
+import { WelcomePage } from "./WelcomePage";
 
 export {
     SignupPage,
@@ -30,6 +33,9 @@ export {
     ProductUpdatePage,
     AddProductPage,
     AdminOrdersPage,
+    AdminProfilePage,
     WishlistPage,
-    OtpVerificationPage
+    OtpVerificationPage,
+    WelcomePage,
+    ContactPage
 }

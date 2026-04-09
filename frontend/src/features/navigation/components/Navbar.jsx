@@ -51,6 +51,7 @@ export const Navbar=({isProductList=false})=> {
     {name:"Home",to:"/"},
     {name:'Profile',to:loggedInUser?.isAdmin?"/admin/profile":"/profile"},
     {name:loggedInUser?.isAdmin?'Orders':'My orders',to:loggedInUser?.isAdmin?"/admin/orders":"/orders"},
+    {name:'Contact',to:"/contact"},
     {name:'Logout',to:"/logout"},
   ];
 
