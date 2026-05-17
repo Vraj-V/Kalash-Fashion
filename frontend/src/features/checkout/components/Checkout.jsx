@@ -92,7 +92,7 @@ export const Checkout = () => {
                 const razorpayOrder = await createRazorpayOrder({amount: totalAmount, currency:"INR"})
 
                 const options = {
-                    key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+                    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                     amount: razorpayOrder.amount,
                     currency: razorpayOrder.currency,
                     name: "Kalash Fashion",

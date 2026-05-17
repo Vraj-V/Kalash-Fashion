@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { getAllOrdersAsync, resetOrderUpdateStatus, selectOrderUpdateStatus, selectOrders, updateOrderByIdAsync } from '../../order/OrderSlice'
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -8,9 +9,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { Avatar, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Avatar, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useForm } from "react-hook-form"
 import { toast } from 'react-toastify';
 import {noOrdersAnimation} from '../../../assets/index'
@@ -20,8 +22,9 @@ import Lottie from 'lottie-react'
 export const AdminOrders = () => {
 
   const dispatch=useDispatch()
+  const navigate=useNavigate()
   const orders=useSelector(selectOrders)
-  const [editIndex,setEditIndex]=useState(-1)
+  const [editId, setEditId] = useState(null)
   const orderUpdateStatus=useSelector(selectOrderUpdateStatus)
   const theme=useTheme()
   const is1620=useMediaQuery(theme.breakpoints.down(1620))
@@ -53,8 +56,8 @@ export const AdminOrders = () => {
 
 
   const handleUpdateOrder=(data)=>{
-    const update={...data,_id:orders[editIndex]._id}
-    setEditIndex(-1)
+    const update={...data,_id:editId}
+    setEditId(null)
     dispatch(updateOrderByIdAsync(update))
   }
 
@@ -82,66 +85,69 @@ export const AdminOrders = () => {
 
   return (
 
-    <Stack justifyContent={'center'} alignItems={'center'}>
+    <Stack px={{ xs: 2, sm: 3, md: 4 }} py={4}>
 
-      <Stack mt={5} mb={3} component={'form'} noValidate onSubmit={handleSubmit(handleUpdateOrder)}>
+      <Stack component={'form'} noValidate onSubmit={handleSubmit(handleUpdateOrder)}>
 
         {
           orders.length?
-          <TableContainer sx={{width:is1620?"95vw":"auto",overflowX:'auto'}} component={Paper} elevation={2}>
-            <Table aria-label="simple table">
+          <TableContainer sx={{ overflowX: 'auto', width: '100%' }} component={Paper} elevation={2}>
+            <Table aria-label="simple table" sx={{ minWidth: 1100 }}>
               <TableHead>
-                <TableRow>
-                  <TableCell>Order</TableCell>
-                  <TableCell align="left">Id</TableCell>
-                  <TableCell align="left">Item</TableCell>
-                  <TableCell align="right">Total Amount</TableCell>
-                  <TableCell align="right">Shipping Address</TableCell>
-                  <TableCell align="right">Payment Method</TableCell>
-                  <TableCell align="right">Order Date</TableCell>
-                  <TableCell align="right">Status</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>#</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Order ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Items</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="right">Total (₹)</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Shipping Address</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="center">Payment</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="center">Order Date</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="center">Status</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="center">Edit</TableCell>
+                  <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} align="center">Detail</TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
 
                 {
-                orders.length && orders.map((order,index) => (
+                [...orders].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map((order,index) => (
 
                   <TableRow key={order._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 
-                    <TableCell component="th" scope="row">{index}</TableCell>
-                    <TableCell align="right">{order._id}</TableCell>
-                    <TableCell align="right">
+                    <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{index + 1}</TableCell>
+                    <TableCell sx={{ fontSize: '0.72rem', color: 'text.secondary', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {order._id}
+                    </TableCell>
+                    <TableCell>
                       {
-                        order.item.map((product)=>(
-                          <Stack mt={2} flexDirection={'row'} alignItems={'center'} columnGap={2}>
-                            <Avatar src={product.product.thumbnail}></Avatar>
-                            <Typography>{product.product.title}</Typography>
+                        order.item.map((product, i)=>(
+                          <Stack key={i} mt={1} flexDirection={'row'} alignItems={'center'} columnGap={1.5}>
+                            <Avatar src={product.product.thumbnail} variant="rounded" sx={{ width: 40, height: 40 }} />
+                            <Typography variant="body2" sx={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {product.product.title}
+                            </Typography>
                           </Stack>
                         ))
                       }
                     </TableCell>
-                    <TableCell align="right">{order.total}</TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>₹{order.total}</TableCell>
+                    <TableCell>
                       <Stack>
-                        <Typography>{order.address[0].street}</Typography>
-                        <Typography>{order.address[0].city}</Typography>
-                        <Typography>{order.address[0].state}</Typography>
-                        <Typography>{order.address[0].postalCode}</Typography>
+                        <Typography variant="body2">{order.address[0].street}</Typography>
+                        <Typography variant="body2">{order.address[0].city}</Typography>
+                        <Typography variant="body2">{order.address[0].state}</Typography>
+                        <Typography variant="body2">{order.address[0].postalCode}</Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell align="right">{order.paymentMode}</TableCell>
-                    <TableCell align="right">{new Date(order.createdAt).toDateString()}</TableCell>
+                    <TableCell align="center">{order.paymentMode}</TableCell>
+                    <TableCell align="center" sx={{ whiteSpace: 'nowrap', fontSize: '0.8rem' }}>{new Date(order.createdAt).toDateString()}</TableCell>
 
                     {/* order status */}
-                    <TableCell align="right">
-
+                    <TableCell align="center">
                         {
-                          editIndex===index?(
-
-                        <FormControl fullWidth>
+                          editId===order._id?(
+                        <FormControl size="small" sx={{ minWidth: 160 }}>
                           <InputLabel id="demo-simple-select-label">Update status</InputLabel>
                           <Select
                             defaultValue={order.status}
@@ -150,33 +156,35 @@ export const AdminOrders = () => {
                             label="Update status"
                             {...register('status',{required:'Status is required'})}
                             >
-                            
                             {
                               editOptions.map((option)=>(
-                                <MenuItem value={option}>{option}</MenuItem>
+                                <MenuItem key={option} value={option}>{option}</MenuItem>
                               ))
                             }
                           </Select>
                         </FormControl>
                         ):<Chip label={order.status} sx={getStatusColor(order.status)}/>
                         }
-                      
                     </TableCell>
 
                     {/* actions */}
-                    <TableCell align="right">
-
+                    <TableCell align="center">
                       {
-                        editIndex===index?(
-                          <Button>
-
-                            <IconButton type='submit'><CheckCircleOutlinedIcon/></IconButton>
-                          </Button>
+                        editId===order._id?(
+                          <IconButton type='submit' color="success"><CheckCircleOutlinedIcon/></IconButton>
                         )
                         :
-                        <IconButton onClick={()=>setEditIndex(index)}><EditOutlinedIcon/></IconButton>
+                        <IconButton onClick={()=>setEditId(order._id)}><EditOutlinedIcon/></IconButton>
                       }
+                    </TableCell>
 
+                    {/* detail */}
+                    <TableCell align="center">
+                      <Tooltip title="View order detail">
+                        <IconButton onClick={()=>navigate(`/admin/orders/${order._id}`)}>
+                          <MoreVertIcon/>
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
 
                   </TableRow>
@@ -187,13 +195,10 @@ export const AdminOrders = () => {
           </TableContainer>
           :
           <Stack width={is480?"auto":'30rem'} justifyContent={'center'}>
-
             <Stack rowGap={'1rem'}>
                 <Lottie animationData={noOrdersAnimation}/>
                 <Typography textAlign={'center'} alignSelf={'center'} variant='h6' fontWeight={400}>There are no orders currently</Typography>
             </Stack>
-              
-
           </Stack>  
         }
     

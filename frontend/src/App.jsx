@@ -7,9 +7,11 @@ import { selectIsAuthChecked, selectLoggedInUser } from './features/auth/AuthSli
 import { Logout } from './features/auth/components/Logout';
 import { AdminProtected, Protected } from './features/auth/components/Protected';
 import { useAuthCheck } from "./hooks/useAuth/useAuthCheck";
-import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUserDetails";
+import { useFetchLoggedInUserDetails } from "./hooks/useAuth/useFetchLoggedInUserDetails.jsx";
 import { AddProductPage, AdminOrdersPage, AdminProfilePage, CartPage, CheckoutPage, ContactPage, ForgotPasswordPage, HomePage, LoginPage, OrderSuccessPage, OtpVerificationPage, ProductDetailsPage, ProductUpdatePage, ResetPasswordPage, SignupPage, UserOrdersPage, UserProfilePage, WishlistPage, WelcomePage } from './pages';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminProductsPage } from './pages/AdminProductsPage';
+import { AdminOrderDetailPage } from './pages/AdminOrderDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 
@@ -38,9 +40,11 @@ function App() {
 
         {/* admin routes */}
         <Route path='/admin/dashboard' element={<AdminProtected><AdminDashboardPage/></AdminProtected>}/>
+        <Route path='/admin/products' element={<AdminProtected><AdminProductsPage/></AdminProtected>}/>
         <Route path='/admin/product-update/:id' element={<AdminProtected><ProductUpdatePage/></AdminProtected>}/>
         <Route path='/admin/add-product' element={<AdminProtected><AddProductPage/></AdminProtected>}/>
         <Route path='/admin/orders'  element={<AdminProtected><AdminOrdersPage/></AdminProtected>}/>
+        <Route path='/admin/orders/:id'  element={<AdminProtected><AdminOrderDetailPage/></AdminProtected>}/>
         <Route path='/admin/profile'  element={<AdminProtected><AdminProfilePage/></AdminProtected>}/>
 
         {/* user routes */}

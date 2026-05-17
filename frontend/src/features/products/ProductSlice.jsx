@@ -87,7 +87,7 @@ const productSlice=createSlice({
                 state.productFetchStatus='pending'
             })
             .addCase(fetchProductsAsync.fulfilled,(state,action)=>{
-                state.productFetchStatus='fullfilled'
+                state.productFetchStatus='fulfilled'
                 state.products=action.payload.data
                 state.totalResults=action.payload.totalResults
             })

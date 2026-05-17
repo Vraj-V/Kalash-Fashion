@@ -1,5 +1,5 @@
-import { FormHelperText, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
-import React, { useEffect } from 'react'
+import { FormHelperText, IconButton, InputAdornment, Stack, TextField, Typography, useMediaQuery, useTheme } from '@mui/material'
+import React, { useEffect, useState } from 'react'
 import Lottie from 'lottie-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from "react-hook-form"
@@ -9,6 +9,8 @@ import { LoadingButton } from '@mui/lab'
 import { selectLoggedInUser, loginAsync, selectLoginStatus, selectLoginError, clearLoginError, resetLoginStatus } from '../AuthSlice'
 import { toast } from 'react-toastify'
 import { MotionConfig, motion } from 'framer-motion'
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
 
 export const Login = () => {
   const dispatch=useDispatch()
@@ -20,6 +22,7 @@ export const Login = () => {
   const theme=useTheme()
   const is900=useMediaQuery(theme.breakpoints.down(900))
   const is480=useMediaQuery(theme.breakpoints.down(480))
+  const [showPassword, setShowPassword] = useState(false)
   
   // handles user redirection
   useEffect(()=>{
@@ -87,7 +90,27 @@ export const Login = () => {
 
                     
                     <motion.div whileHover={{y:-5}}>
-                      <TextField type='password' fullWidth {...register("password",{required:"Password is required"})} placeholder='Password'/>
+                      <TextField
+                        type={showPassword ? 'text' : 'password'}
+                        fullWidth
+                        {...register("password",{required:"Password is required"})}
+                        placeholder='Password'
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword(p => !p)}
+                                edge="end"
+                                size="small"
+                                sx={{'&:hover':{backgroundColor:'transparent'}}}
+                                disableRipple
+                              >
+                                {showPassword ? <VisibilityOffOutlinedIcon fontSize="small"/> : <VisibilityOutlinedIcon fontSize="small"/>}
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                      />
                       {errors.password && <FormHelperText sx={{mt:1}} error>{errors.password.message}</FormHelperText>}
                     </motion.div>
                     

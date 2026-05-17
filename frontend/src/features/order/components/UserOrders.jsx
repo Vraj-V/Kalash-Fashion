@@ -2,14 +2,75 @@ import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { getOrderByUserIdAsync, resetOrderFetchStatus, selectOrderFetchStatus, selectOrders } from '../OrderSlice'
 import { selectLoggedInUser } from '../../auth/AuthSlice'
-import { Button, IconButton, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { Box, Button, Chip, IconButton, Paper, Stack, Step, StepLabel, Stepper, Typography, useMediaQuery, useTheme } from '@mui/material'
 import {Link} from 'react-router-dom'
 import { addToCartAsync, resetCartItemAddStatus, selectCartItemAddStatus, selectCartItems } from '../../cart/CartSlice'
 import Lottie from 'lottie-react'
 import { loadingAnimation, noOrdersAnimation } from '../../../assets'
 import { toast } from 'react-toastify'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import {motion} from 'framer-motion'
+
+// ── status config ──────────────────────────────────────────────────────────
+const STATUS_CONFIG = {
+    pending:    { label: 'Pending',    bg: '#fff8e1', color: '#f57f17', step: 0 },
+    confirmed:  { label: 'Confirmed',  bg: '#e3f2fd', color: '#1565c0', step: 1 },
+    dispatched: { label: 'Dispatched', bg: '#f3e5f5', color: '#6a1b9a', step: 2 },
+    shipped:    { label: 'Shipped',    bg: '#e8f5e9', color: '#2e7d32', step: 3 },
+    delivered:  { label: 'Delivered',  bg: '#e8f5e9', color: '#1b5e20', step: 4 },
+    cancelled:  { label: 'Cancelled',  bg: '#ffebee', color: '#b71c1c', step: -1 },
+}
+
+const TRACKING_STEPS = ['Order Placed', 'Confirmed', 'Dispatched', 'Shipped', 'Delivered']
+
+const StatusBadge = ({ status }) => {
+    const key = status?.toLowerCase() || 'pending'
+    const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.pending
+    return (
+        <Chip
+            label={cfg.label}
+            size="small"
+            sx={{
+                backgroundColor: cfg.bg,
+                color: cfg.color,
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                border: `1.5px solid ${cfg.color}`,
+                px: 1,
+            }}
+        />
+    )
+}
+
+const TrackingBar = ({ status }) => {
+    const key = status?.toLowerCase() || 'pending'
+    const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.pending
+    if (cfg.step === -1) return null  // cancelled — no stepper
+
+    return (
+        <Box sx={{ mt: 2, px: 1 }}>
+            <Stepper activeStep={cfg.step} alternativeLabel>
+                {TRACKING_STEPS.map((label, i) => (
+                    <Step key={label} completed={i <= cfg.step}>
+                        <StepLabel
+                            sx={{
+                                '& .MuiStepLabel-label': {
+                                    fontSize: '0.72rem',
+                                    fontWeight: i === cfg.step ? 700 : 400,
+                                    color: i === cfg.step ? cfg.color : 'text.secondary',
+                                },
+                                '& .MuiStepIcon-root.Mui-active': { color: cfg.color },
+                                '& .MuiStepIcon-root.Mui-completed': { color: cfg.color },
+                            }}
+                        >
+                            {label}
+                        </StepLabel>
+                    </Step>
+                ))}
+            </Stepper>
+        </Box>
+    )
+}
 
 
 export const UserOrders = () => {
@@ -179,9 +240,13 @@ export const UserOrders = () => {
 
                                     </Stack>
 
-                                    {/* lower */}
-                                    <Stack mt={2} flexDirection={'row'} justifyContent={'space-between'}>
-                                        <Typography mb={2}>Status : {order.status}</Typography>
+                                    {/* lower — status badge + tracking */}
+                                    <Stack mt={2} rowGap={1.5}>
+                                        <Stack flexDirection={'row'} alignItems={'center'} columnGap={1.5}>
+                                            <Typography fontWeight={500} fontSize={'0.9rem'}>Status</Typography>
+                                            <StatusBadge status={order.status}/>
+                                        </Stack>
+                                        <TrackingBar status={order.status}/>
                                     </Stack>
                                         
                                 </Stack>

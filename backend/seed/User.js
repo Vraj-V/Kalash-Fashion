@@ -21,9 +21,9 @@ const users = [
   },
   {
     _id: "65c2526fdcd9253acfbaa732",
-    name: "admin",
-    email: "admin@gmail.com",
-    password: "$2a$10$GrY13H.m/17Gn.2qkkWaxef4D.nkDLRBZDJ323UupmZVMltzGw0qO",
+    name: "Admin",
+    email: "admin@example.com",
+    password: "$2a$10$zY1TlFgHH7cv..TbAgLSOej0PuI3mtUOQ1sohW652KXFfMgQAdScK",
     isVerified: true,
     isAdmin: true,
     __v: 0,

@@ -43,6 +43,12 @@ export const Navbar=({isProductList=false})=> {
     setAnchorElUser(null);
   };
 
+  // shared style to kill the grey oval hover on icon buttons
+  const iconBtnSx = {
+    '&:hover': { backgroundColor: 'transparent' },
+    '&:focus': { backgroundColor: 'transparent' },
+  }
+
   const handleToggleFilters=()=>{
     dispatch(toggleFilters())
   }
@@ -67,7 +73,7 @@ export const Navbar=({isProductList=false})=> {
 
           <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} columnGap={2} sx={{ ml: 'auto', pr: 2 }}>
             <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, ...iconBtnSx }}>
                 <Avatar alt={userInfo?.name} src="null" />
               </IconButton>
             </Tooltip>
@@ -104,9 +110,10 @@ export const Navbar=({isProductList=false})=> {
             </Menu>
             {/* <Typography variant='h6' fontWeight={300}>{is480?`${userInfo?.name.toString().split(" ")[0]}`:`Hey👋, ${userInfo?.name}`}</Typography> */}
             {loggedInUser.isAdmin && (
-              <Button variant='contained' component={Link} to="/admin/dashboard">
-                Admin
-              </Button>
+              <Stack direction="row" gap={1}>
+                <Button variant='contained' component={Link} to="/admin/dashboard">Dashboard</Button>
+                <Button variant='outlined' component={Link} to="/admin/products" sx={{color:'text.primary',borderColor:'divider'}}>Products</Button>
+              </Stack>
             )}
             <Stack sx={{flexDirection:"row",columnGap:"1rem",alignItems:"center",justifyContent:"center"}}>
 
@@ -114,9 +121,9 @@ export const Navbar=({isProductList=false})=> {
             {
             cartItems?.length>0 && 
             <Badge  badgeContent={cartItems.length} color='error'>
-              <IconButton onClick={()=>navigate("/cart")}>
+              <IconButton disableRipple onClick={()=>navigate("/cart")} sx={iconBtnSx}>
                 <ShoppingCartOutlinedIcon />
-                </IconButton>
+              </IconButton>
             </Badge>
             }
             
@@ -124,12 +131,12 @@ export const Navbar=({isProductList=false})=> {
               !loggedInUser?.isAdmin &&
                   <Stack>
                       <Badge badgeContent={wishlistItems?.length} color='error'>
-                          <IconButton component={Link} to={"/wishlist"}><FavoriteBorderIcon /></IconButton>
+                          <IconButton disableRipple component={Link} to={"/wishlist"} sx={iconBtnSx}><FavoriteBorderIcon /></IconButton>
                       </Badge>
                   </Stack>
             }
             {
-              isProductList && <IconButton onClick={handleToggleFilters}><TuneIcon sx={{color:isProductFilterOpen?"black":""}}/></IconButton>
+              isProductList && <IconButton disableRipple onClick={handleToggleFilters} sx={iconBtnSx}><TuneIcon sx={{color:isProductFilterOpen?"black":""}}/></IconButton>
             }
             
             </Stack>

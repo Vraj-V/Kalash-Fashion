@@ -47,7 +47,7 @@ export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handle
     {
 
     isProductAlreadyinWishlist!==-1 ?
-    <Stack component={isAdminCard?"":isWishlistCard?"":is408?'':Paper} mt={is408?2:0} elevation={1} p={2} width={is408?'auto':is488?"200px":is608?"240px":is752?"300px":is932?'240px':is1410?'300px':'340px'} sx={{cursor:"pointer"}} onClick={()=>navigate(`/product-details/${id}`)}>
+    <Stack component={isAdminCard?"":isWishlistCard?"":is408?'':Paper} mt={is408?2:0} elevation={1} p={2} width={isAdminCard||isWishlistCard?is408?'auto':is488?"200px":is608?"240px":is752?"300px":is932?'240px':is1410?'300px':'340px':'100%'} sx={{cursor:"pointer"}} onClick={()=>navigate(`/product-details/${id}`)}>
 
         {/* image display */}
         <Stack>
@@ -67,7 +67,15 @@ export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handle
 
             <Stack>
                 <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'}>
-                    <Typography variant='h6' fontWeight={400}>{title}</Typography>
+                    <Typography variant='h6' fontWeight={400} sx={{
+                        display:'-webkit-box',
+                        WebkitLineClamp:2,
+                        WebkitBoxOrient:'vertical',
+                        overflow:'hidden',
+                        textOverflow:'ellipsis',
+                        lineHeight:1.4,
+                        minHeight:'2.8em'
+                    }}>{title}</Typography>
                     {
                     !isAdminCard && 
                     <motion.div whileHover={{scale:1.3,y:-10,zIndex:100}} whileTap={{scale:1}} transition={{duration:.4,type:"spring"}}>
@@ -78,21 +86,18 @@ export const ProductCard = ({id,title,price,thumbnail,brand,stockQuantity,handle
                 <Typography color={"text.secondary"}>{brand}</Typography>
             </Stack>
 
-            <Stack sx={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-                <Typography>₹{price}</Typography>
+            <Stack sx={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:1,overflow:'hidden'}}>
+                <Typography sx={{whiteSpace:'nowrap',flexShrink:0}}>₹{price}</Typography>
                 {
                     !isWishlistCard? isProductAlreadyInCart?
-                    'Added to cart'
+                    <Typography variant='body2' color='text.secondary' sx={{flexShrink:0}}>Added to cart</Typography>
                     :
                     !isAdminCard &&
-                    <motion.button  whileHover={{scale:1.030}} whileTap={{scale:1}} onClick={(e)=>handleAddToCart(e)} style={{padding:"10px 15px",borderRadius:"3px",outline:"none",border:"none",cursor:"pointer",backgroundColor:"black",color:"white",fontSize:is408?'.9rem':is488?'.7rem':is500?'.8rem':'.9rem'}}>
-                        <div style={{display:"flex",alignItems:"center",columnGap:".5rem"}}>
-                            <p>Add To Cart</p>
-                        </div>
+                    <motion.button whileHover={{scale:1.030}} whileTap={{scale:1}} onClick={(e)=>handleAddToCart(e)} style={{padding:"6px 14px",borderRadius:"3px",outline:"none",border:"none",cursor:"pointer",backgroundColor:"black",color:"white",fontSize:'.82rem',whiteSpace:'nowrap',display:'block',width:'fit-content',marginLeft:'auto'}}>
+                        Add To Cart
                     </motion.button>
                     :''
                 }
-                
             </Stack>
             {
                 stockQuantity<=20 && (

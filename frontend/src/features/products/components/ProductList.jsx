@@ -1,5 +1,5 @@
-import {FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import {Grid, IconButton, Stack, Typography, useMediaQuery, useTheme, CircularProgress } from '@mui/material'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchProductsAsync, resetProductFetchStatus, selectProductFetchStatus, selectProductIsFilterOpen, selectProductTotalResults, selectProducts, toggleFilters } from '../ProductSlice'
 import { ProductCard } from './ProductCard'
@@ -17,31 +17,26 @@ import { ITEMS_PER_PAGE } from '../../../constants'
 import {createWishlistItemAsync, deleteWishlistItemByIdAsync, resetWishlistItemAddStatus, resetWishlistItemDeleteStatus, selectWishlistItemAddStatus, selectWishlistItemDeleteStatus, selectWishlistItems} from '../../wishlist/WishlistSlice'
 import {selectLoggedInUser} from '../../auth/AuthSlice'
 import {toast} from 'react-toastify'
-import {banner1, banner2, banner3, banner4, loadingAnimation} from '../../../assets'
 import { resetCartItemAddStatus, selectCartItemAddStatus } from '../../cart/CartSlice'
 import { motion } from 'framer-motion'
 import { ProductBanner } from './ProductBanner'
 import ClearIcon from '@mui/icons-material/Clear';
-import Lottie from 'lottie-react'
+import { CategoryStrip } from './CategoryStrip'
 
 
-const sortOptions=[
-    {name:"Price: low to high",sort:"price",order:"asc"},
-    {name:"Price: high to low",sort:"price",order:"desc"},
+const bannerImages=[
+    'https://th.bing.com/th/id/R.cd66eb97266ccdb121243e439568c0d2?rik=pxWYA6s%2bmaHj5w&riu=http%3a%2f%2fwww.chinayabanaras.com%2fcdn%2fshop%2farticles%2fBlog_Banner_-291123-Lehenga_Styling_by_Chinaya-Banaras.jpg%3fv%3d1701261387&ehk=n8kkI0x8SW7p%2ftla0M7V%2bZk4tW%2fa4gPUvKEhQFFjet0%3d&risl=&pid=ImgRaw&r=0',
+    'https://mnnsha.com/wp-content/uploads/2022/08/LEHENGA_BANNER-1.jpg',
+    'https://cdn.shopify.com/s/files/1/0611/9017/6900/files/bridal_lehenga.webp?v=1745215420',
 ]
-
-
-const bannerImages=[banner1,banner3,banner2,banner4]
 
 export const ProductList = () => {
     const [filters,setFilters]=useState({})
     const [page,setPage]=useState(1)
-    const [sort,setSort]=useState(null)
+    const [selectedCategory,setSelectedCategory]=useState(null)
+    const [isInitialLoad,setIsInitialLoad]=useState(true)
     const theme=useTheme()
 
-    const is1200=useMediaQuery(theme.breakpoints.down(1200))
-    const is800=useMediaQuery(theme.breakpoints.down(800))
-    const is700=useMediaQuery(theme.breakpoints.down(700))
     const is600=useMediaQuery(theme.breakpoints.down(600))
     const is500=useMediaQuery(theme.breakpoints.down(500))
     const is488=useMediaQuery(theme.breakpoints.down(488))
@@ -65,24 +60,19 @@ export const ProductList = () => {
     const dispatch=useDispatch()
 
     const handleBrandFilters=(e)=>{
-
-        const filterSet=new Set(filters.brand)
-
-        if(e.target.checked){filterSet.add(e.target.value)}
-        else{filterSet.delete(e.target.value)}
-
-        const filterArray = Array.from(filterSet);
-        setFilters({...filters,brand:filterArray})
+        const filterSet=new Set(filters.brand || [])
+        if(e.target.checked){ filterSet.add(e.target.value) }
+        else{ filterSet.delete(e.target.value) }
+        setFilters({...filters, brand: Array.from(filterSet)})
+        setPage(1)
     }
 
     const handleCategoryFilters=(e)=>{
-        const filterSet=new Set(filters.category)
-
-        if(e.target.checked){filterSet.add(e.target.value)}
-        else{filterSet.delete(e.target.value)}
-
-        const filterArray = Array.from(filterSet);
-        setFilters({...filters,category:filterArray})
+        const filterSet=new Set(filters.category || [])
+        if(e.target.checked){ filterSet.add(e.target.value) }
+        else{ filterSet.delete(e.target.value) }
+        setFilters({...filters, category: Array.from(filterSet)})
+        setPage(1)
     }
 
     useEffect(()=>{
@@ -99,17 +89,13 @@ export const ProductList = () => {
 
     useEffect(()=>{
         const finalFilters={...filters}
-
         finalFilters['pagination']={page:page,limit:ITEMS_PER_PAGE}
-        finalFilters['sort']=sort
-
         if(!loggedInUser?.isAdmin){
             finalFilters['user']=true
         }
-
         dispatch(fetchProductsAsync(finalFilters))
-        
-    },[filters,page,sort])
+            .finally(()=>setIsInitialLoad(false))
+    },[filters,page])
 
 
     const handleAddRemoveFromWishlist=(e,productId)=>{
@@ -173,54 +159,62 @@ export const ProductList = () => {
         dispatch(toggleFilters())
     }
 
+    const handleCategoryStripSelect=(label)=>{
+        setSelectedCategory(label)
+        if(label){
+            // "Wedding" tile maps to Lehenga category (bridal lehengas)
+            const searchName = label === 'Wedding' ? 'Lehenga' : label
+            const matched=categories.find(c=>c.name.toLowerCase()===searchName.toLowerCase())
+            if(matched){
+                setFilters(prev=>({...prev,category:[matched._id]}))
+            }
+        } else {
+            setFilters(prev=>{
+                const next={...prev}
+                delete next.category
+                return next
+            })
+        }
+        setPage(1)
+    }
+
   return (
     <>
     {/* filters side bar */}
 
     {
-        productFetchStatus==='pending'?
-        <Stack width={is500?"35vh":'25rem'} height={'calc(100vh - 4rem)'} justifyContent={'center'} marginRight={'auto'} marginLeft={'auto'}>
-            <Lottie animationData={loadingAnimation}/>
+        (productFetchStatus==='pending' && isInitialLoad)?
+        <Stack width={'100%'} height={'calc(100vh - 4rem)'} justifyContent={'center'} alignItems={'center'}>
+            <CircularProgress size={56} thickness={4} sx={{color:'#1a1a1a'}}/>
         </Stack>
         :
         <>
         <motion.div style={{position:"fixed",backgroundColor:"white",height:"100vh",padding:'1rem',overflowY:"scroll",width:is500?"100vw":"30rem",zIndex:500}}  variants={{show:{left:0},hide:{left:-500}}} initial={'hide'} transition={{ease:"easeInOut",duration:.7,type:"spring"}} animate={isProductFilterOpen===true?"show":"hide"}>
 
-            {/* fitlers section */}
+            {/* filters section */}
             <Stack mb={'5rem'}  sx={{scrollBehavior:"smooth",overflowY:"scroll"}}>
 
-                    
-                        <Typography variant='h4'>New Arrivals</Typography>
+                <Typography variant='h4'>Filters</Typography>
 
-
-                            <IconButton onClick={handleFilterClose} style={{position:"absolute",top:15,right:15}}>
-                                <motion.div whileHover={{scale:1.1}} whileTap={{scale:0.9}}>
-                                    <ClearIcon fontSize='medium'/>
-                                </motion.div>
-                            </IconButton>
-
-
-                    <Stack rowGap={2} mt={4} >
-                        <Typography sx={{cursor:"pointer"}} variant='body2'>Women</Typography>
-                        <Typography sx={{cursor:"pointer"}} variant='body2'>Silk Choli</Typography>
-                        <Typography sx={{cursor:"pointer"}} variant='body2'>Lengha</Typography>
-                        <Typography sx={{cursor:"pointer"}} variant='body2'>Kurtis</Typography>
-                        <Typography sx={{cursor:"pointer"}} variant='body2'>Saare</Typography>
-                    </Stack>
+                <IconButton onClick={handleFilterClose} style={{position:"absolute",top:15,right:15}} disableRipple sx={{'&:hover':{backgroundColor:'transparent'}}}>
+                    <motion.div whileHover={{scale:1.1}} whileTap={{scale:0.9}}>
+                        <ClearIcon fontSize='medium'/>
+                    </motion.div>
+                </IconButton>
 
                     {/* brand filters */}
-                    <Stack mt={2}>
-                        <Accordion>
+                    <Stack mt={3}>
+                        <Accordion defaultExpanded>
                             <AccordionSummary expandIcon={<AddIcon />}  aria-controls="brand-filters" id="brand-filters" >
                                     <Typography>Brands</Typography>
                             </AccordionSummary>
 
                             <AccordionDetails sx={{p:0}}>
-                                <FormGroup onChange={handleBrandFilters}>
+                                <FormGroup>
                                     {
                                         brands?.map((brand)=>(
-                                            <motion.div style={{width:"fit-content"}} whileHover={{x:5}} whileTap={{scale:0.9}}>
-                                                <FormControlLabel sx={{ml:1}} control={<Checkbox whileHover={{scale:1.1}} />} label={brand.name} value={brand._id} />
+                                            <motion.div key={brand._id} style={{width:"fit-content"}} whileHover={{x:5}} whileTap={{scale:0.9}}>
+                                                <FormControlLabel sx={{ml:1}} control={<Checkbox onChange={handleBrandFilters} value={brand._id}/>} label={brand.name} />
                                             </motion.div>
                                         ))
                                     }
@@ -231,17 +225,17 @@ export const ProductList = () => {
 
                     {/* category filters */}
                     <Stack mt={2}>
-                        <Accordion>
-                            <AccordionSummary expandIcon={<AddIcon />}  aria-controls="brand-filters" id="brand-filters" >
+                        <Accordion defaultExpanded>
+                            <AccordionSummary expandIcon={<AddIcon />}  aria-controls="category-filters" id="category-filters" >
                                     <Typography>Category</Typography>
                             </AccordionSummary>
 
                             <AccordionDetails sx={{p:0}}>
-                                <FormGroup onChange={handleCategoryFilters}>
+                                <FormGroup>
                                     {
                                         categories?.map((category)=>(
-                                            <motion.div style={{width:"fit-content"}} whileHover={{x:5}} whileTap={{scale:0.9}}>
-                                                <FormControlLabel sx={{ml:1}} control={<Checkbox whileHover={{scale:1.1}} />} label={category.name} value={category._id} />
+                                            <motion.div key={category._id} style={{width:"fit-content"}} whileHover={{x:5}} whileTap={{scale:0.9}}>
+                                                <FormControlLabel sx={{ml:1}} control={<Checkbox onChange={handleCategoryFilters} value={category._id}/>} label={category.name} />
                                             </motion.div>
                                         ))
                                     }
@@ -253,52 +247,40 @@ export const ProductList = () => {
 
         </motion.div>
         
+        <motion.div
+            style={{ marginLeft: 0 }}
+            variants={{
+                open:  { marginLeft: is500 ? 0 : '30rem' },
+                closed: { marginLeft: 0 }
+            }}
+            initial='closed'
+            animate={isProductFilterOpen && !is500 ? 'open' : 'closed'}
+            transition={{ ease: 'easeInOut', duration: 0.7, type: 'spring' }}
+        >
         <Stack mb={'3rem'}>
             
 
                 {/* banners section */}
                 {
                     !is600 && 
-                
-                <Stack sx={{width:"100%",height:"100vh"}}>
+                <Stack sx={{width:"100%"}}>
                     <ProductBanner images={bannerImages}/>
                 </Stack>
                 }
 
+                {/* category strip */}
+                <CategoryStrip onSelect={handleCategoryStripSelect} selected={selectedCategory}/>
+
                 {/* products */}
-                <Stack rowGap={5} mt={is600?2:0}>
-                
-                    
-                    {/* sort options */}
-                    <Stack flexDirection={'row'} mr={'2rem'} justifyContent={'flex-end'} alignItems={'center'} columnGap={5}>
-                                       
-                        <Stack alignSelf={'flex-end'} width={'12rem'}>
-                            <FormControl fullWidth>
-                                    <InputLabel id="sort-dropdown">Sort</InputLabel>
-                                    <Select
-                                        variant='standard'
-                                        labelId="sort-dropdown"
-                                        label="Sort"
-                                        onChange={(e)=>setSort(e.target.value)}
-                                        value={sort}
-                                    >
-                                        <MenuItem bgcolor='text.secondary' value={null}>Reset</MenuItem>
-                                        {
-                                            sortOptions.map((option)=>(
-                                                <MenuItem key={option} value={option}>{option.name}</MenuItem>
-                                            ))
-                                        }
-                                    </Select>
-                            </FormControl>
-                        </Stack>
-                    
-                    </Stack>
+                <Stack rowGap={5} mt={is600?2:0} px={is600?3:8}>
                     
                     {/* product grid */}
-                <Grid gap={is700?1:2} container justifyContent={'center'} alignContent={'center'}>
+                <Grid container spacing={2}>
                 {
                     products.map((product)=>(
-                        <ProductCard key={product._id} id={product._id} title={product.title} thumbnail={product.thumbnail} brand={product.brand.name} price={product.price} handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}/>
+                        <Grid key={product._id} item xs={6} sm={6} md={isProductFilterOpen && !is500 ? 4 : 3}>
+                            <ProductCard id={product._id} title={product.title} thumbnail={product.thumbnail} brand={product.brand.name} price={product.price} handleAddRemoveFromWishlist={handleAddRemoveFromWishlist}/>
+                        </Grid>
                             ))
                         }
                     </Grid>
@@ -312,6 +294,7 @@ export const ProductList = () => {
                 </Stack>
                 
         </Stack>
+        </motion.div>
         </>
     }
 
