@@ -1,16 +1,18 @@
 require('dotenv').config()
 const mongoose=require("mongoose")
-const dns=require("dns")
-
-// Node.js v25 may fail SRV lookups with local DNS servers.
-// Force Google's public DNS to ensure mongodb+srv:// resolves correctly.
-dns.setServers(['8.8.8.8','8.8.4.4'])
 
 exports.connectToDB=async()=>{
     try {
-        await mongoose.connect(process.env.MONGO_URI)
+        if(mongoose.connection.readyState===1){
+            return // already connected — reuse connection in serverless
+        }
+        await mongoose.connect(process.env.MONGO_URI,{
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+        })
         console.log('connected to DB');
     } catch (error) {
         console.log(error);
+        throw error
     }
 }
